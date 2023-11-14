@@ -8,6 +8,6 @@ erl_crash.dump
 *.beam
 advent-*.tar
 /tmp/
-
+.vscode
 /config/*.secret.exs
 .elixir_ls/
