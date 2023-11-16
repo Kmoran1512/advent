@@ -1,39 +1,56 @@
 defmodule Day6Year15 do
-  require IEx
-
   def main do
     input_path = Path.join(["lib", "2015", "Day_6", "input.txt"])
     input = File.read!(input_path)
 
-    apply_lights(input)
+    # apply_lights(input)
+    Day6Year15_2.apply_lights(input)
   end
 
   def apply_lights(input) do
     inputs =
-      input |> String.split(~r/\r?\n/, trim: true) |> Enum.map(&format_input/1)
+      input |> String.split(~r/\r?\n/, trim: true) |> Enum.map(&Day6Year15_p.format_input/1)
 
-    mat = get_matrix()
+    commands = %{on: fn _ -> true end, off: fn _ -> false end, toggle: fn x -> not x end}
 
+    Day6Year15_p.matrix_reduce(inputs, Day6Year15_p.get_matrix(), commands)
+    |> Enum.count(& &1)
+  end
+end
+
+defmodule Day6Year15_2 do
+  def apply_lights(input) do
+    inputs =
+      input |> String.split(~r/\r?\n/, trim: true) |> Enum.map(&Day6Year15_p.format_input/1)
+
+    mat = Day6Year15_p.get_matrix(999, 0)
+    commands = %{on: fn x -> x + 1 end, off: fn x -> max(x - 1, 0) end, toggle: fn x -> x + 2 end}
+
+    Day6Year15_p.matrix_reduce(inputs, mat, commands) |> Enum.sum()
+  end
+end
+
+defmodule Day6Year15_p do
+  def matrix_reduce(inputs, mat, cmds) do
     inputs
     |> Enum.reduce(mat, fn instruction, acc ->
       {cmd, s, e} = instruction
 
-      apply_cmd(cmd, get_coords(s, e), acc)
+      apply_cmd(cmd, get_coords(s, e), acc, cmds)
     end)
     |> Map.values()
-    |> Enum.count(& &1)
   end
 
   def get_coords({x0, y0}, {x1, y1}) do
     for x <- x0..x1, y <- y0..y1, do: {x, y}
   end
 
-  def apply_cmd(cmd, coordinates, grid) do
+  def apply_cmd(cmd, coordinates, grid, commands) do
     put_fn =
       case cmd do
-        :on -> fn _ -> true end
-        :off -> fn _ -> false end
-        :toggle -> fn x -> not x end
+        :on -> commands[:on]
+        :off -> commands[:off]
+        :toggle -> commands[:toggle]
       end
 
     Enum.reduce(coordinates, grid, fn k, a ->
@@ -41,9 +58,9 @@ defmodule Day6Year15 do
     end)
   end
 
-  def get_matrix(z \\ 999) do
+  def get_matrix(z \\ 999, default \\ false) do
     for(x <- 0..z, y <- 0..z, do: {x, y})
-    |> Enum.reduce(%{}, fn key, a -> Map.put(a, key, false) end)
+    |> Enum.reduce(%{}, fn key, a -> Map.put(a, key, default) end)
   end
 
   def format_input(input) do
