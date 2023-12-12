@@ -46,13 +46,13 @@ defmodule Day2Year15 do
   end
 
   defp get_smallest_surface_area(dims) do
-    dims |> least_two() |> Enum.product()
+    dims |> least_two() |> Enum.reduce(fn x, acc -> x * acc end)
   end
 
   defp get_smallest_wrapping_length(dims) do
     2 * (dims |> least_two() |> Enum.sum())
   end
 
-  defp get_volume(dims), do: dims |> Enum.product()
+  defp get_volume(dims), do: dims |> Enum.reduce(fn x, acc -> x * acc end)
   defp least_two(dims), do: dims |> Enum.sort() |> Enum.take(2)
 end
